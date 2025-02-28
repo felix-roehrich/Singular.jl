@@ -291,6 +291,26 @@ function leading_coefficient(p::SPolyUnion)
    end
 end
 
+function trailing_exponent_vector(p::SPolyUnion)
+   if iszero(p)
+      throw(ArgumentError("Zero polynomial does not have a trailing exponent vector"))
+   end
+   
+   R = parent(p)
+   exp = Vector{Int}(undef, nvars(R))
+   GC.@preserve p R begin
+      P = p.ptr
+      while P.cpp_object != C_NULL
+         Q = libSingular.pNext(P)
+         if Q.cpp_object == C_NULL
+            libSingular.p_GetExpVL(P, exp, R.ptr)
+            return exp
+         end
+         P = Q
+      end
+   end
+end
+
 function trailing_coefficient(p::SPolyUnion)
    R = base_ring(p)
    GC.@preserve p R begin
