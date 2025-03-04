@@ -311,6 +311,24 @@ function trailing_exponent_vector(p::SPolyUnion)
    end
 end
 
+function trailing_term(p::SPolyUnion)
+  if iszero(p)
+     throw(ArgumentError("Zero polynomial does not have a trailing term"))
+  end
+  
+  R = parent(p)
+  GC.@preserve p R begin
+     P = p.ptr
+     while P.cpp_object != C_NULL
+        Q = libSingular.pNext(P)
+        if Q.cpp_object == C_NULL
+           return R(libSingular.p_Copy(P, R.ptr))
+        end
+        P = Q
+     end
+  end
+end
+
 function trailing_coefficient(p::SPolyUnion)
    R = base_ring(p)
    GC.@preserve p R begin
